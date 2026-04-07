@@ -6,7 +6,7 @@ services:
     container_name: pydio-app
     restart: unless-stopped
     environment:
-      - CELLS_EXTERNAL_URL=https://apps.henn.com
+      - CELLS_EXTERNAL_URL=https://apps.henn.com/pydio
       - CELLS_BIND=0.0.0.0:80
       - CELLS_NO_TLS=1
       - DB_HOST=pydio-db
@@ -21,7 +21,7 @@ services:
       - pydio_logs:/var/cells/logs
       - pydio_services:/var/cells/services
     expose:
-      - "8080"
+      - "80"
     depends_on:
       - pydio-db
     networks:
