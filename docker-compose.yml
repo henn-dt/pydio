@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  pydio:
+    image: pydio/cells:latest
+    container_name: pydio-app
+    restart: unless-stopped
+    environment:
+      - CELLS_EXTERNAL_URL=https://apps.henn.com
+      - CELLS_BIND=0.0.0.0:80
+      - CELLS_NO_TLS=1
+      - DB_HOST=pydio-db
+      - DB_NAME=pydio
+      - DB_USER=pydio
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - CELLS_ADMIN_USER=${PYDIO_ADMIN_USER}
+      - CELLS_ADMIN_PASSWORD=${PYDIO_ADMIN_PASSWORD}
+    volumes:
+      - pydio_data:/var/cells/data
+      - pydio_config:/var/cells/config
+      - pydio_logs:/var/cells/logs
+      - pydio_services:/var/cells/services
+    expose:
+      - "8080"
+    depends_on:
+      - pydio-db
+    networks:
+      - nginx-proxy
+
+  pydio-db:
+    image: mariadb:lts
+    container_name: pydio-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=pydio
+      - MYSQL_USER=pydio
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - pydio_db:/var/lib/mysql
+    networks:
+      - nginx-proxy
+
+  pydio-nginx:
+    build: ./nginx
+    container_name: pydio-nginx
+    restart: unless-stopped
+    expose:
+      - "8016"
+    depends_on:
+      - pydio
+    networks:
+      - nginx-proxy
+
+volumes:
+  pydio_data:
+  pydio_config:
+  pydio_logs:
+  pydio_services:
+  pydio_db:
+
+networks:
+  nginx-proxy:
+    external: true
+    name: nginx-proxy_nginx-proxy
